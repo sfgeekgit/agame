@@ -1,9 +1,10 @@
 import uuid
 from django.db import connection
 from django.views.decorators.csrf import ensure_csrf_cookie
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, throttle_classes
 from rest_framework.response import Response
 from rest_framework import status
+from .throttling import LoggingScopedRateThrottle
 
 
 def _get_user_data(user_id):
@@ -41,6 +42,7 @@ def _create_user():
 
 
 @api_view(['GET'])
+@throttle_classes([LoggingScopedRateThrottle])
 @ensure_csrf_cookie
 def get_or_create_user(request):
     user_id = request.session.get('user_id')
@@ -58,6 +60,7 @@ def get_or_create_user(request):
 
 
 @api_view(['POST'])
+@throttle_classes([LoggingScopedRateThrottle])
 def add_points(request):
     user_id = request.session.get('user_id')
     if not user_id:
@@ -94,3 +97,7 @@ def add_points(request):
 
     data = _get_user_data(user_id)
     return Response(data)
+
+
+get_or_create_user.throttle_scope = 'user_me'
+add_points.throttle_scope = 'points'

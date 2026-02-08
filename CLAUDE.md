@@ -14,24 +14,26 @@
 ## file first, then reference it in code.
 ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-## Content Directory Structure
+## Documentation Split
 
-- `/content/ui.json` — UI strings (title, buttons, labels, status messages)
-- `/content/dialog/` — NPC dialog (Markdown or YAML)
-- `/content/story/` — Story text, descriptions
+- **`CLAUDE.md`** (this file, in git) — code rules, test commands, git workflow. Things any contributor needs.
+- **`SERVER.md`** (gitignored) — infrastructure: Caddy, systemd, MariaDB, ports, security. Server-operator details only. **Read it and write to it** when dealing with deployment, config, or security topics.
 
-Content is served by Caddy at `/agame/content/*` with no-cache headers.
-Frontend fetches it at runtime — no rebuild required for text changes.
+## Content Directory
+
+- `content/ui.json` — UI strings (title, buttons, labels, status messages)
+- `content/dialog/` — NPC dialog (Markdown or YAML)
+- `content/story/` — Story text, descriptions
+
+Content is fetched at runtime — no rebuild required for text changes.
 
 ## Stack
 
-- **Backend**: Django + DRF, raw SQL, gunicorn on port 8001
-- **Frontend**: React + Vite + Tailwind, built to `frontend/dist/`
-- **Database**: MariaDB — tables `user_login` and `players`
-- **Web server**: Caddy (HTTPS, reverse proxy, static files)
-- **Service**: systemd `agame.service` runs as `agame` user
+- **Backend**: Django + DRF, raw SQL
+- **Frontend**: React + Vite + Tailwind
+- **Database**: MariaDB
 
-## Key Paths
+## Key Code Paths
 
 | What | Path |
 |------|------|
@@ -40,9 +42,6 @@ Frontend fetches it at runtime — no rebuild required for text changes.
 | React app | `frontend/src/App.jsx` |
 | Vite config | `frontend/vite.config.js` |
 | UI text | `content/ui.json` |
-| Caddy config | `/etc/caddy/Caddyfile` |
-| Systemd service | `/etc/systemd/system/agame.service` |
-| DB credentials | `.db_credentials` |
 
 ## Tests
 
@@ -63,9 +62,8 @@ This server has the owner's GitHub SSH keys configured. When making commits:
 - It's fine to also credit Claude as co-author, but the owner must be the committer
 - Repo: https://github.com/sfgeekgit/agame
 
-## After Changes
+## After Code Changes
 
-- **Frontend code changes**: `cd frontend && npm run build` (rebuilds to `dist/`)
-- **Backend code changes**: `systemctl restart agame`
-- **Content text changes**: Nothing — takes effect immediately
-- **Caddy config changes**: `systemctl reload caddy`
+- **Frontend**: `cd frontend && npm run build`
+- **Backend**: `systemctl restart agame`
+- **Content text**: Nothing — takes effect immediately
