@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ -x "backend/venv/bin/ruff" ]]; then
+  backend/venv/bin/ruff check backend
+else
+  python -m ruff check backend
+fi
+python3 scripts/check_sql_access.py

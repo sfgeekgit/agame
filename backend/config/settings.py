@@ -87,10 +87,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ],
     'UNAUTHENTICATED_USER': None,
-    'DEFAULT_THROTTLE_RATES': {
-        'user_me': '120/min',
-        'points': '1200/min',
-    },
 }
 
 LANGUAGE_CODE = 'en-us'

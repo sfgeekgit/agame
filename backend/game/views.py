@@ -1,22 +1,20 @@
 import uuid
-from django.db import connection
 from django.views.decorators.csrf import ensure_csrf_cookie
-from rest_framework.decorators import api_view, throttle_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .throttling import LoggingScopedRateThrottle
+from . import db
 
 
 def _get_user_data(user_id):
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT ul.user_id, ul.name, ul.created_at, p.points "
-            "FROM user_login ul "
-            "JOIN players p ON ul.user_id = p.user_id "
-            "WHERE ul.user_id = %s",
-            [user_id]
-        )
-        row = cursor.fetchone()
+    # Always use the db module for raw SQL to keep access centralized.
+    row = db.fetch_one(
+        "SELECT ul.user_id, ul.name, ul.created_at, p.points "
+        "FROM user_login ul "
+        "JOIN players p ON ul.user_id = p.user_id "
+        "WHERE ul.user_id = %s",
+        [user_id],
+    )
     if row:
         return {
             'user_id': row[0],
@@ -29,20 +27,18 @@ def _get_user_data(user_id):
 
 def _create_user():
     user_id = str(uuid.uuid4())
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "INSERT INTO user_login (user_id) VALUES (%s)",
-            [user_id]
-        )
-        cursor.execute(
-            "INSERT INTO players (user_id, points) VALUES (%s, 0)",
-            [user_id]
-        )
+    db.execute(
+        "INSERT INTO user_login (user_id) VALUES (%s)",
+        [user_id],
+    )
+    db.execute(
+        "INSERT INTO players (user_id, points) VALUES (%s, 0)",
+        [user_id],
+    )
     return user_id
 
 
 @api_view(['GET'])
-@throttle_classes([LoggingScopedRateThrottle])
 @ensure_csrf_cookie
 def get_or_create_user(request):
     user_id = request.session.get('user_id')
@@ -60,7 +56,6 @@ def get_or_create_user(request):
 
 
 @api_view(['POST'])
-@throttle_classes([LoggingScopedRateThrottle])
 def add_points(request):
     user_id = request.session.get('user_id')
     if not user_id:
@@ -84,20 +79,15 @@ def add_points(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "UPDATE players SET points = points + %s WHERE user_id = %s",
-            [amount, user_id]
+    rowcount = db.execute(
+        "UPDATE players SET points = points + %s WHERE user_id = %s",
+        [amount, user_id],
+    )
+    if rowcount == 0:
+        return Response(
+            {'error': 'User not found'},
+            status=status.HTTP_404_NOT_FOUND
         )
-        if cursor.rowcount == 0:
-            return Response(
-                {'error': 'User not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
 
     data = _get_user_data(user_id)
     return Response(data)
-
-
-get_or_create_user.throttle_scope = 'user_me'
-add_points.throttle_scope = 'points'

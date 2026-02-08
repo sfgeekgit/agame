@@ -8,6 +8,7 @@ db.sqlite3
 # Node
 frontend/node_modules/
 frontend/dist/
+frontend/README.md
 
 # Server docs and credentials (not for public repo)
 .db_credentials

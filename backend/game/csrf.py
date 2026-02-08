@@ -15,5 +15,5 @@ class CsrfEnforcement(BaseAuthentication):
             request, None, (), {}
         )
         if reason:
-            raise AuthenticationFailed(f'CSRF check failed.')
+            raise AuthenticationFailed('CSRF check failed.')
         return None

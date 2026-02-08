@@ -1,26 +1,25 @@
 import re
-from django.db import connection
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
+from . import db
 
 
 # Raw SQL tables aren't created by Django migrations, so we create them manually.
 def create_game_tables():
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS user_login (
-                user_id CHAR(36) NOT NULL PRIMARY KEY,
-                name VARCHAR(100) DEFAULT NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-        """)
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS players (
-                user_id CHAR(36) NOT NULL PRIMARY KEY,
-                points BIGINT NOT NULL DEFAULT 0,
-                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-        """)
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS user_login (
+            user_id CHAR(36) NOT NULL PRIMARY KEY,
+            name VARCHAR(100) DEFAULT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    """)
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS players (
+            user_id CHAR(36) NOT NULL PRIMARY KEY,
+            points BIGINT NOT NULL DEFAULT 0,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    """)
 
 
 # Settings that disable CSRF enforcement and Secure cookies for test client (HTTP)
@@ -61,9 +60,8 @@ class UserEndpointTests(TestCase):
         res1 = self.client.get('/api/user/me/')
         old_id = res1.data['user_id']
         # Delete user from DB but session still has the ID
-        with connection.cursor() as cursor:
-            cursor.execute("DELETE FROM players WHERE user_id = %s", [old_id])
-            cursor.execute("DELETE FROM user_login WHERE user_id = %s", [old_id])
+        db.execute("DELETE FROM players WHERE user_id = %s", [old_id])
+        db.execute("DELETE FROM user_login WHERE user_id = %s", [old_id])
         res2 = self.client.get('/api/user/me/')
         self.assertEqual(res2.status_code, 201)
         self.assertNotEqual(res2.data['user_id'], old_id)
@@ -169,11 +167,16 @@ class DatabaseTests(TestCase):
     def test_both_tables_populated(self):
         res = self.client.get('/api/user/me/')
         user_id = res.data['user_id']
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM user_login WHERE user_id = %s", [user_id])
-            self.assertEqual(cursor.fetchone()[0], 1)
-            cursor.execute("SELECT COUNT(*) FROM players WHERE user_id = %s", [user_id])
-            self.assertEqual(cursor.fetchone()[0], 1)
+        count_login = db.fetch_one(
+            "SELECT COUNT(*) FROM user_login WHERE user_id = %s",
+            [user_id],
+        )[0]
+        self.assertEqual(count_login, 1)
+        count_players = db.fetch_one(
+            "SELECT COUNT(*) FROM players WHERE user_id = %s",
+            [user_id],
+        )[0]
+        self.assertEqual(count_players, 1)
 
     def test_user_id_is_uuid(self):
         res = self.client.get('/api/user/me/')

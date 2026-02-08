@@ -19,12 +19,6 @@ function App() {
     Promise.all([
       fetch(`${API_BASE}/user/me/`, { credentials: 'include' }).then(async (r) => {
         if (!r.ok) {
-          if (r.status === 429) {
-            const retryAfter = r.headers.get('Retry-After')
-            throw new Error(retryAfter
-              ? `Too many requests. Try again in ${retryAfter}s.`
-              : 'Too many requests. Please try again.')
-          }
           const err = await r.json().catch(() => ({}))
           throw new Error(err.error || `Request failed (${r.status})`)
         }
@@ -54,12 +48,6 @@ function App() {
         body: JSON.stringify({ amount }),
       })
       if (!res.ok) {
-        if (res.status === 429) {
-          const retryAfter = res.headers.get('Retry-After')
-          throw new Error(retryAfter
-            ? `Too many requests. Try again in ${retryAfter}s.`
-            : 'Too many requests. Please try again.')
-        }
         const err = await res.json().catch(() => ({}))
         throw new Error(err.error || `Request failed (${res.status})`)
       }

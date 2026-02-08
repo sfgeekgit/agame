@@ -21,7 +21,7 @@ Players visit the page, automatically get a persistent anonymous account, and ea
 /home/agame/
   backend/                # Django project
     config/               # Django settings, urls, wsgi
-    game/                 # App: API views (raw SQL), CSRF enforcement
+    game/                 # App: API views (raw SQL via game/db.py), CSRF enforcement
     venv/                 # Python virtual environment
   frontend/               # React app (Vite)
     src/                  # Components, entry point
@@ -47,6 +47,10 @@ Two tables in the `agame` database, linked 1:1 by `user_id` (UUID, no FK constra
 - **user_login** — user identity (user_id, name, created_at)
 - **players** — game state (user_id, points, updated_at)
 
+## DB Access Rules
+
+All SQL must go through `backend/game/db.py`. Do not call `django.db.connection` or `cursor()` directly elsewhere.
+
 ## API Endpoints
 
 | Method | Path | Description |
@@ -54,12 +58,25 @@ Two tables in the `agame` database, linked 1:1 by `user_id` (UUID, no FK constra
 | GET | `/agame/api/user/me/` | Get or create anonymous user |
 | POST | `/agame/api/user/me/points/` | Add points (body: `{"amount": N}`) |
 
+## Build + Verify (Recommended Order)
+
+```bash
+# Build frontend
+cd /home/agame/frontend && npm run build
+
+# Lint (backend: ruff + house rules)
+cd /home/agame && ./lint
+
+# Backend tests (Django)
+cd /home/agame/backend && source venv/bin/activate && DB_PASSWORD=<password> python manage.py test game
+
+# Frontend tests (Vitest)
+cd /home/agame/frontend && npx vitest run
+```
+
 ## Common Operations
 
 ```bash
-# Rebuild frontend after code changes
-cd /home/agame/frontend && npm run build
-
 # Restart backend after code changes
 systemctl restart agame
 
@@ -77,12 +94,11 @@ mariadb -u root agame -e "SELECT * FROM user_login; SELECT * FROM players;"
 systemctl reload caddy
 ```
 
-## Running Tests
+## Linting Policy
 
-```bash
-# Backend (Django)
-cd /home/agame/backend && source venv/bin/activate && DB_PASSWORD=<password> python manage.py test game
+The `./lint` command runs:
 
-# Frontend (Vitest)
-cd /home/agame/frontend && npx vitest run
-```
+- Ruff (Python lint) on `backend/`
+- House rules (currently: all SQL must go through `backend/game/db.py`)
+
+Do not access `django.db.connection` or `cursor()` directly outside the DB helper module.
