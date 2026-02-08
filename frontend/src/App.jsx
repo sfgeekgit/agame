@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 
-const API_BASE = '/agame/api'
-const CONTENT_BASE = '/agame/content'
+const GAME_SLUG = import.meta.env.VITE_GAME_SLUG || 'agame'
+const URL_PREFIX = GAME_SLUG ? `/${GAME_SLUG}` : ''
+const API_BASE = `${URL_PREFIX}/api`
+const CONTENT_BASE = `${URL_PREFIX}/content`
+const CSRF_COOKIE = GAME_SLUG ? `${GAME_SLUG}_csrf` : 'game_csrf'
 
 function getCsrfToken() {
-  const match = document.cookie.match(/agame_csrf=([^;]+)/)
+  const match = document.cookie.match(new RegExp(`${CSRF_COOKIE}=([^;]+)`))
   return match ? match[1] : ''
 }
 

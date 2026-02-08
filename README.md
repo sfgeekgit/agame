@@ -40,6 +40,22 @@ Players visit the page, automatically get a persistent anonymous account, and ea
 - **Django sessions** (stored in MariaDB) track anonymous users via a 2-year cookie
 - All game text lives in `/content/` — editable without a rebuild
 
+## Instance Config
+
+Instance-specific values are centralized via environment variables and small helpers in `backend/config/game_config.py`.
+
+Backend env vars:
+
+- `GAME_SLUG` (default: `agame`) — URL prefix and cookie name prefix
+- `DB_NAME` (default: same as `GAME_SLUG`) — MariaDB database name
+- `DJANGO_SECRET_KEY`, `DB_PASSWORD` — required secrets
+
+Frontend build env vars:
+
+- `VITE_GAME_SLUG` (default: `agame`) — must match `GAME_SLUG`
+
+Cookie names are derived from `GAME_SLUG` (`<slug>_session`, `<slug>_csrf`) and paths use `/<slug>/`.
+
 ## Database
 
 Two tables in the `agame` database, linked 1:1 by `user_id` (UUID, no FK constraint):

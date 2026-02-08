@@ -1,5 +1,11 @@
 import os
 from pathlib import Path
+from .game_config import (
+    CSRF_COOKIE_NAME as GAME_CSRF_COOKIE_NAME,
+    DB_NAME,
+    SESSION_COOKIE_NAME as GAME_SESSION_COOKIE_NAME,
+    URL_PATH,
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -35,7 +41,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'agame',
+        'NAME': DB_NAME,
         'USER': 'agame',
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': 'localhost',
@@ -49,8 +55,8 @@ DATABASES = {
 # Session config — anonymous user persistence
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 365 * 2  # 2 years
-SESSION_COOKIE_NAME = 'agame_session'
-SESSION_COOKIE_PATH = '/agame/'
+SESSION_COOKIE_NAME = GAME_SESSION_COOKIE_NAME
+SESSION_COOKIE_PATH = URL_PATH
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
@@ -65,8 +71,8 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     'https://documentbrain.com',
 ]
-CSRF_COOKIE_NAME = 'agame_csrf'
-CSRF_COOKIE_PATH = '/agame/'
+CSRF_COOKIE_NAME = GAME_CSRF_COOKIE_NAME
+CSRF_COOKIE_PATH = URL_PATH
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 
