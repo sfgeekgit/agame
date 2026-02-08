@@ -1,0 +1,12 @@
+{
+  "title": "A Game",
+  "loading": "Loading...",
+  "errorPrefix": "Error:",
+  "pointsLabel": "pts",
+  "userLabel": "User:",
+  "buttons": [
+    { "amount": 1, "label": "+1 Point" },
+    { "amount": 5, "label": "+5 Points" },
+    { "amount": 10, "label": "+10 Points" }
+  ]
+}
