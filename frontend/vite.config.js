@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/agame/',
+  base: process.env.VITE_GAME_SLUG ? `/${process.env.VITE_GAME_SLUG}/` : '/agame/',
   test: {
     environment: 'happy-dom',
     setupFiles: './src/setup-tests.js',
@@ -12,12 +12,20 @@ export default defineConfig({
     pool: 'vmThreads',
   },
   server: {
-    proxy: {
-      '/agame/api': {
-        target: 'http://127.0.0.1:8001',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/agame/, ''),
-      },
-    },
+    proxy: process.env.VITE_GAME_SLUG
+      ? {
+          [`/${process.env.VITE_GAME_SLUG}/api`]: {
+            target: 'http://127.0.0.1:8001',
+            changeOrigin: true,
+            rewrite: (path) => path.replace(new RegExp(`^/${process.env.VITE_GAME_SLUG}`), ''),
+          },
+        }
+      : {
+          '/agame/api': {
+            target: 'http://127.0.0.1:8001',
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/agame/, ''),
+          },
+        },
   },
 })

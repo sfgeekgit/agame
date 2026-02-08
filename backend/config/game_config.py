@@ -22,3 +22,4 @@ SESSION_COOKIE_NAME = f"{GAME_SLUG}_session" if GAME_SLUG else "game_session"
 CSRF_COOKIE_NAME = f"{GAME_SLUG}_csrf" if GAME_SLUG else "game_csrf"
 
 DB_NAME = _env("DB_NAME", GAME_SLUG or "agame")
+DB_USER = _env("DB_USER", DB_NAME)

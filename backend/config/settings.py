@@ -3,6 +3,7 @@ from pathlib import Path
 from .game_config import (
     CSRF_COOKIE_NAME as GAME_CSRF_COOKIE_NAME,
     DB_NAME,
+    DB_USER,
     SESSION_COOKIE_NAME as GAME_SESSION_COOKIE_NAME,
     URL_PATH,
 )
@@ -42,7 +43,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': DB_NAME,
-        'USER': 'agame',
+        'USER': DB_USER,
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': 'localhost',
         'PORT': '3306',

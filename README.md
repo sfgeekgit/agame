@@ -48,6 +48,7 @@ Backend env vars:
 
 - `GAME_SLUG` (default: `agame`) — URL prefix and cookie name prefix
 - `DB_NAME` (default: same as `GAME_SLUG`) — MariaDB database name
+- `DB_USER` (default: same as `DB_NAME`) — MariaDB username
 - `DJANGO_SECRET_KEY`, `DB_PASSWORD` — required secrets
 
 Frontend build env vars:
@@ -55,6 +56,8 @@ Frontend build env vars:
 - `VITE_GAME_SLUG` (default: `agame`) — must match `GAME_SLUG`
 
 Cookie names are derived from `GAME_SLUG` (`<slug>_session`, `<slug>_csrf`) and paths use `/<slug>/`.
+
+Vite also uses `VITE_GAME_SLUG` to set the build `base` path, so you must set it for any non-`/agame/` instance.
 
 ## Database
 
